@@ -4,14 +4,14 @@ var frisby = require('frisby');
 
 var URL = 'http://localhost:3000';
 
-frisby.create('GET availability of https://github.com/bkimminich/juice-shop before executing redirect test')
-    .get("https://github.com/bkimminich/juice-shop")
+frisby.create('GET availability of https://github.com/OWASP/juice-shop before executing redirect test')
+    .get("https://github.com/OWASP/juice-shop")
     .after(function (err, res) {
         if (err != null) {
-            console.log('Problem with HTTP connection (' + err + '). Skipping redirect test to https://github.com/bkimminich/juice-shop');
+            console.log('Problem with HTTP connection (' + err + '). Skipping redirect test to https://github.com/OWASP/juice-shop');
         } else {
-            frisby.create('GET redirected to https://github.com/bkimminich/juice-shop when this URL is passed as "to" parameter')
-                .get(URL + "/redirect?to=https://github.com/bkimminich/juice-shop")
+            frisby.create('GET redirected to https://github.com/OWASP/juice-shop when this URL is passed as "to" parameter')
+                .get(URL + "/redirect?to=https://github.com/OWASP/juice-shop")
                 .expectStatus(res.statusCode)
                 .toss();
         }
@@ -135,7 +135,7 @@ frisby.create('GET error message hinting at whitelist validation when calling /r
     .toss();
 
 frisby.create('GET redirected to target URL in "to" parameter when a white-listed URL is part of the query string')
-    .get(URL + "/redirect?to=/score-board?satisfyIndexOf=https://github.com/bkimminich/juice-shop")
+    .get(URL + "/redirect?to=/score-board?satisfyIndexOf=https://github.com/OWASP/juice-shop")
     .expectStatus(200)
     .expectHeaderContains('content-type', 'text/html')
     .expectBodyContains('<title>OWASP Juice Shop</title>')

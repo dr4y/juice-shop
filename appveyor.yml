@@ -5,6 +5,7 @@ branches:
   except:
   - gh-pages
   - lightning-talk
+  - repo-move # TODO Remove exception after move was performed to check if all URLs work
 environment:
   matrix:
     - nodejs_version: 4 # recommended version
