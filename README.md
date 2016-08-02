@@ -1,6 +1,6 @@
-# ![Juice Shop Logo](https://raw.githubusercontent.com/bkimminich/juice-shop/master/app/public/images/JuiceShop_Logo_50px.png) OWASP Juice Shop
+# ![Juice Shop Logo](https://raw.githubusercontent.com/OWASP/juice-shop/master/app/public/images/JuiceShop_Logo_50px.png) OWASP Juice Shop
 
-[![Build Status](https://travis-ci.org/bkimminich/juice-shop.svg?branch=master)](https://travis-ci.org/bkimminich/juice-shop) [![Build status](https://ci.appveyor.com/api/projects/status/903c6mnns4t7p6fa/branch/master?svg=true)](https://ci.appveyor.com/project/bkimminich/juice-shop/branch/master) [![Test Coverage](https://codeclimate.com/github/bkimminich/juice-shop/badges/coverage.svg)](https://codeclimate.com/github/bkimminich/juice-shop) [![Code Climate](https://codeclimate.com/github/bkimminich/juice-shop/badges/gpa.svg)](https://codeclimate.com/github/bkimminich/juice-shop) [![Sauce Test Status](https://saucelabs.com/buildstatus/juice-shop)](https://saucelabs.com/u/juice-shop)
+[![Build Status](https://travis-ci.org/OWASP/juice-shop.svg?branch=master)](https://travis-ci.org/OWASP/juice-shop) [![Build status](https://ci.appveyor.com/api/projects/status/903c6mnns4t7p6fa/branch/master?svg=true)](https://ci.appveyor.com/project/OWASP/juice-shop/branch/master) [![Test Coverage](https://codeclimate.com/github/OWASP/juice-shop/badges/coverage.svg)](https://codeclimate.com/github/OWASP/juice-shop) [![Code Climate](https://codeclimate.com/github/OWASP/juice-shop/badges/gpa.svg)](https://codeclimate.com/github/OWASP/juice-shop) [![Sauce Test Status](https://saucelabs.com/buildstatus/juice-shop)](https://saucelabs.com/u/juice-shop)
 
 > [The most trustworthy online shop out there.](https://twitter.com/dschadow/status/706781693504589824) ([@dschadow](https://github.com/dschadow))
 
@@ -26,7 +26,7 @@ Apart from the hacker and awareness training use case, pentesting proxies or sec
 
 ## Application Architecture
 
-![Juice Shop Architecture](https://github.com/bkimminich/juice-shop/blob/gh-pages/assets/Architektur_JuiceShop.png?raw=true)
+![Juice Shop Architecture](https://github.com/OWASP/juice-shop/blob/gh-pages/assets/Architektur_JuiceShop.png?raw=true)
 
 ## Preview [![Heroku](https://heroku-badge.herokuapp.com/?app=juice-shop)](https://juice-shop.herokuapp.com)
 
@@ -47,16 +47,16 @@ Feel free to have a look at the latest version of OWASP Juice Shop: <https://jui
 ### From Sources
 
 1. Install [node.js 4.x or higher](http://nodejs.org)\*
-2. Run ```git clone https://github.com/bkimminich/juice-shop.git``` (or clone [your own fork](https://github.com/bkimminich/juice-shop/fork) of the repository)
+2. Run ```git clone https://github.com/OWASP/juice-shop.git``` (or clone [your own fork](https://github.com/OWASP/juice-shop/fork) of the repository)
 3. Run ```npm install``` (only has to be done before first start or when you change the source code)
 4. Run ```npm start```
 5. Browse to <http://localhost:3000>
 
-### Docker Container [![Docker](http://img.shields.io/badge/docker-bkimminich%2Fjuice--shop-blue.svg)](https://registry.hub.docker.com/u/bkimminich/juice-shop/)
+### Docker Container [![Docker](http://img.shields.io/badge/docker-OWASP%2Fjuice--shop-blue.svg)](https://registry.hub.docker.com/u/owasp/juice-shop/)
 
 1. Install [Docker](https://www.docker.com)
-2. Run ```docker pull bkimminich/juice-shop```
-3. Run ```docker run -d -p 3000:3000 bkimminich/juice-shop```
+2. Run ```docker pull owasp/juice-shop```
+3. Run ```docker run -d -p 3000:3000 OWASP/juice-shop```
 4. Browse to <http://localhost:3000>
 
 #### Even easier: Run Docker Container from Docker Toolbox (Kitematic)
@@ -65,10 +65,10 @@ Feel free to have a look at the latest version of OWASP Juice Shop: <https://jui
 2. Search for ```juice-shop``` and click _Create_ to download image and run container
 3. Click on the _Open_ icon next to _Web Preview_ to browse to OWASP Juice Shop
 
-### Packaged Distributions [![GitHub release](https://img.shields.io/github/downloads/bkimminich/juice-shop/total.svg)](https://github.com/bkimminich/juice-shop/releases/latest) [![SourceForge](https://img.shields.io/sourceforge/dt/juice-shop.svg)](https://sourceforge.net/projects/juice-shop/)
+### Packaged Distributions [![GitHub release](https://img.shields.io/github/downloads/OWASP/juice-shop/total.svg)](https://github.com/OWASP/juice-shop/releases/latest) [![SourceForge](https://img.shields.io/sourceforge/dt/juice-shop.svg)](https://sourceforge.net/projects/juice-shop/)
 
 1. Install a [64bit node.js 4.x, 5.x or 6.x](https://nodejs.org/en/download)\* on your Windows (or Linux) machine
-2. Download ```juice-shop-<version>_<node-version>_<os>_x64.zip``` (or ```.tgz```) attached to [latest release](https://github.com/bkimminich/juice-shop/releases/latest)
+2. Download ```juice-shop-<version>_<node-version>_<os>_x64.zip``` (or ```.tgz```) attached to [latest release](https://github.com/OWASP/juice-shop/releases/latest)
 3. Unpack and run ```npm start``` in unpacked folder
 4. Browse to <http://localhost:3000>
 
@@ -87,8 +87,8 @@ Feel free to have a look at the latest version of OWASP Juice Shop: <https://jui
 yum update -y
 yum install -y docker
 service docker start
-docker pull bkimminich/juice-shop:latest
-docker run -d -p 80:3000 bkimminich/juice-shop:latest
+docker pull OWASP/juice-shop:latest
+docker run -d -p 80:3000 OWASP/juice-shop:latest
 ```
 
 > Technically Amazon could view hacking activity on any EC2 instance as an attack on their AWS infrastructure! We highly disrecommend aggressive scanning or automated brute force attacks! You have been warned!
@@ -102,25 +102,25 @@ OWASP Juice Shop officially supports the following versions of [node.js](http://
 
 > Support for node.js 0.10, 0.11 and 0.12 has been dropped to reduce the complexity of the build matrix and get less timeouts from Sauce Labs during test execution.  
 
-## Troubleshooting [![Gitter](http://img.shields.io/badge/gitter-join%20chat-1dce73.svg)](https://gitter.im/bkimminich/juice-shop)
+## Troubleshooting [![Gitter](http://img.shields.io/badge/gitter-join%20chat-1dce73.svg)](https://gitter.im/OWASP/juice-shop)
 
-> If you need help with the application setup please check the Troubleshooting section below or post your specific problem or question in the [official Gitter Chat](https://gitter.im/bkimminich/juice-shop).
+> If you need help with the application setup please check the Troubleshooting section below or post your specific problem or question in the [official Gitter Chat](https://gitter.im/OWASP/juice-shop).
 
 - If you are experiencing [Error 128](https://github.com/bower/bower/issues/50) from some GitHub repos during ```bower_install.js``` execution, run ```git config --global url."https://".insteadOf git://``` and try ```npm install``` again
 - If using Boot2Docker (Docker inside VirtualBox on Windows) make sure that you also enable port forwarding from Host ```127.0.0.1:3000``` to ```0.0.0.0:3000``` for TCP
 - If ```npm install``` fails after an update of your local copy during ```bower_install.js``` complaining about version issues, delete ```/app/bower_components``` and try again to remove outdated versions that cause conflicts
 - You may find it easier to find vulnerabilities using a pen test tool. I strongly recommend [Zed Attack Proxy](https://code.google.com/p/zaproxy/) which is open source and very powerful, yet beginner friendly.
 
-## Contributions [![HuBoard](http://img.shields.io/badge/Hu-Board-blue.svg)](https://huboard.com/bkimminich/juice-shop)
+## Contributions [![HuBoard](http://img.shields.io/badge/Hu-Board-blue.svg)](https://huboard.com/OWASP/juice-shop)
 
 Found a bug? Crashed the app? Broken challenge? Found a vulnerability that is not on the Score Board?
 
-Feel free to [create an issue](https://github.com/bkimminich/juice-shop/issues) or [post your ideas in the chat](https://gitter.im/bkimminich/juice-shop)! Pull requests are also highly welcome as long as the tests still pass!
+Feel free to [create an issue](https://github.com/OWASP/juice-shop/issues) or [post your ideas in the chat](https://gitter.im/OWASP/juice-shop)! Pull requests are also highly welcome as long as the tests still pass!
 
-[![Dependency Status](https://gemnasium.com/bkimminich/juice-shop.svg)](https://gemnasium.com/bkimminich/juice-shop)
+[![Dependency Status](https://gemnasium.com/OWASP/juice-shop.svg)](https://gemnasium.com/OWASP/juice-shop)
 [![Dependency Status](https://www.versioneye.com/user/projects/544a2e5ac310f92c920000ec/badge.svg?style=flat)](https://www.versioneye.com/user/projects/544a2e5ac310f92c920000ec)
-[![Dependency Status](https://david-dm.org/bkimminich/juice-shop.svg)](https://david-dm.org/bkimminich/juice-shop)
-[![devDependency Status](https://david-dm.org/bkimminich/juice-shop/dev-status.svg)](https://david-dm.org/bkimminich/juice-shop#info=devDependencies)
+[![Dependency Status](https://david-dm.org/OWASP/juice-shop.svg)](https://david-dm.org/OWASP/juice-shop)
+[![devDependency Status](https://david-dm.org/OWASP/juice-shop/dev-status.svg)](https://david-dm.org/OWASP/juice-shop#info=devDependencies)
 
 > In case you are wondering about some red or yellow dependency badges: OWASP Juice Shop is _intentionally broken_, so [using components with known vulnerabilities](https://www.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities) is considered a _feature_!
 
@@ -183,4 +183,4 @@ Inspired by the "classic" [BodgeIt Store](https://github.com/psiinon/bodgeit) by
 
 This program is free software: you can redistribute it and/or modify it under the terms of the [MIT license](LICENSE). OWASP Juice Shop and any contributions are Copyright © by Bjoern Kimminich 2014-2016.
 
-![Juice Shop Logo](https://raw.githubusercontent.com/bkimminich/juice-shop/master/app/public/images/JuiceShop_Logo.png)
+![Juice Shop Logo](https://raw.githubusercontent.com/OWASP/juice-shop/master/app/public/images/JuiceShop_Logo.png)
