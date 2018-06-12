@@ -1,38 +1,26 @@
-/*jslint node: true */
-'use strict';
+/* jslint node: true */
+const utils = require('../lib/utils')
+const challenges = require('../data/datacache').challenges
 
-var utils = require('../lib/utils'),
-    challenges = require('../data/datacache').challenges;
+module.exports = (sequelize, {STRING, DECIMAL}) => {
+  const Product = sequelize.define('Product', {
+    name: STRING,
+    description: {
+      type: STRING,
+      set (description) {
+        if (utils.notSolved(challenges.restfulXssChallenge) && utils.contains(description, '<script>alert("XSS")</script>')) {
+          utils.solve(challenges.restfulXssChallenge)
+        }
+        this.setDataValue('description', description)
+      }
+    },
+    price: DECIMAL,
+    image: STRING
+  }, { paranoid: true })
 
+  Product.associate = ({Basket, BasketItem}) => {
+    Product.belongsToMany(Basket, { through: BasketItem })
+  }
 
-module.exports = function (sequelize, DataTypes) {
-    var Product = sequelize.define('Product', {
-            name: DataTypes.STRING,
-            description: DataTypes.STRING,
-            price: DataTypes.DECIMAL,
-            image: DataTypes.STRING
-        }, {
-            paranoid: true,
-            classMethods: {
-                associate: function (models) {
-                    Product.hasMany(models.Basket, {through: models.BasketItem});
-                }},
-
-            hooks: {
-                beforeCreate: function (product, fn) {
-                    xssChallengeProductHook(product);
-                    fn(null, product);
-                },
-                beforeUpdate: function (product, fn) {
-                    xssChallengeProductHook(product);
-                    fn(null, product);
-                }
-            }});
-    return Product;
-};
-
-function xssChallengeProductHook(product) {
-     if (utils.notSolved(challenges.restfulXssChallenge) && utils.contains(product.description, '<script>alert("XSS4")</script>')) {
-         utils.solve(challenges.restfulXssChallenge);
-     }
+  return Product
 }

@@ -1,16 +1,13 @@
-/*jslint node: true */
-'use strict';
+/* jslint node: true */
+module.exports = (sequelize, {STRING}) => {
+  const Basket = sequelize.define('Basket', {
+    coupon: STRING
+  })
 
-module.exports = function (sequelize, DataTypes) {
-    var Basket = sequelize.define('Basket', {
-            coupon: DataTypes.STRING
-        },
-        {
-            classMethods: {
-                associate: function (models) {
-                    Basket.belongsTo(models.User);
-                    Basket.hasMany(models.Product, {through: models.BasketItem});
-                }}}
-    );
-    return Basket;
-};
+  Basket.associate = ({User, Product, BasketItem}) => {
+    Basket.belongsTo(User, { constraints: true, foreignKeyConstraint: true })
+    Basket.belongsToMany(Product, { through: BasketItem })
+  }
+
+  return Basket
+}

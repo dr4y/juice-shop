@@ -1,12 +1,13 @@
 angular.module('juiceShop').controller('LogoutController', [
-    '$cookieStore',
-    '$window',
-    '$location',
-    function ($cookieStore, $window, $location) {
-        'use strict';
+  '$rootScope',
+  '$cookies',
+  '$window',
+  '$location',
+  function ($rootScope, $cookies, $window, $location) {
+    'use strict'
 
-        $cookieStore.remove('token');
-        delete $window.sessionStorage.bid;
-        $location.path('/');
-
-    }]);
+    $cookies.remove('token')
+    delete $window.sessionStorage.bid
+    $rootScope.$emit('user_logged_out')
+    $location.path('/')
+  }])

@@ -1,135 +1,175 @@
-'use strict';
+const config = require('config')
 
-describe('/#/contact', function () {
+describe('/#/contact', () => {
+  let comment, rating, submitButton, captcha
 
-    var comment, rating, submitButton;
+  protractor.beforeEach.login({ email: 'admin@' + config.get('application.domain'), password: 'admin123' })
 
-    protractor.beforeEach.login({email: 'admin@juice-sh.op', password: 'admin123'});
+  beforeEach(() => {
+    browser.get('/#/contact')
+    comment = element(by.model('feedback.comment'))
+    rating = element(by.model('feedback.rating'))
+    captcha = element(by.model('feedback.captcha'))
+    submitButton = element(by.id('submitButton'))
+    solveNextCaptcha()
+  })
 
-    beforeEach(function () {
-        browser.get('/#/contact');
-        comment = element(by.model('feedback.comment'));
-        rating = element(by.model('feedback.rating'));
-        submitButton = element(by.id('submitButton'));
-    });
+  describe('challenge "forgedFeedback"', () => {
+    it('should be possible to provide feedback as another user', () => {
+      browser.executeScript('document.getElementById("userId").removeAttribute("ng-hide");')
+      browser.executeScript('document.getElementById("userId").removeAttribute("class");')
 
-    describe('challenge "forgedFeedback"', function () {
+      const UserId = element(by.model('feedback.UserId'))
+      UserId.clear()
+      UserId.sendKeys('2')
+      comment.sendKeys('Picard stinks!')
+      rating.click()
 
-        it('should be possible to provide feedback as another user', function () {
-            browser.executeScript('document.getElementById("userId").removeAttribute("ng-hide");');
-            browser.executeScript('document.getElementById("userId").removeAttribute("class");');
+      submitButton.click()
 
-            var UserId = element(by.model('feedback.UserId'));
-            UserId.clear();
-            UserId.sendKeys('2');
-            comment.sendKeys('Picard stinks!');
-            rating.click();
+      browser.get('/#/administration')
+      const feedbackUserId = element.all(by.repeater('feedback in feedbacks').column('UserId'))
+      expect(feedbackUserId.last().getText()).toMatch('2')
+    })
 
-            submitButton.click();
+    protractor.expect.challengeSolved({ challenge: 'Forged Feedback' })
+  })
 
-            browser.get('/#/administration');
-            var feedbackUserId = element.all(by.repeater('feedback in feedbacks').column('UserId'));
-            expect(feedbackUserId.last().getText()).toMatch('2');
-        });
+  it('should sanitize script from comments to remove potentially malicious html', () => {
+    comment.sendKeys('Sani<script>alert("ScriptXSS")</script>tizedScript')
+    rating.click()
 
-        protractor.expect.challengeSolved({challenge: 'forgedFeedback'});
+    submitButton.click()
 
-    });
+    expectPersistedCommentToMatch(/SanitizedScript/)
+  })
 
-    it('should sanitize script from comments to remove potentially malicious html', function () {
-        comment.sendKeys('Sani<script>alert("ScriptXSS")</script>tizedScript');
-        rating.click();
+  it('should sanitize image from comments to remove potentially malicious html', () => {
+    comment.sendKeys('Sani<img src="alert("ImageXSS")"/>tizedImage')
+    rating.click()
 
-        submitButton.click();
+    submitButton.click()
 
-        expectPersistedCommentToMatch(/SanitizedScript/);
-    });
+    expectPersistedCommentToMatch(/SanitizedImage/)
+  })
 
-    it('should sanitize image from comments to remove potentially malicious html', function () {
-        comment.sendKeys('Sani<img src="alert("ImageXSS")"/>tizedImage');
-        rating.click();
+  it('should sanitize iframe from comments to remove potentially malicious html', () => {
+    comment.sendKeys('Sani<iframe src="alert("IFrameXSS")"></iframe>tizedIFrame')
+    rating.click()
 
-        submitButton.click();
+    submitButton.click()
 
-        expectPersistedCommentToMatch(/SanitizedImage/);
-    });
+    expectPersistedCommentToMatch(/SanitizedIFrame/)
+  })
 
-    it('should sanitize iframe from comments to remove potentially malicious html', function () {
-        comment.sendKeys('Sani<iframe src="alert("IFrameXSS")"></iframe>tizedIFrame');
-        rating.click();
+  describe('challenge "xss4"', () => {
+    it('should be possible to trick the sanitization with a masked XSS attack', () => {
+      const EC = protractor.ExpectedConditions
 
-        submitButton.click();
+      comment.sendKeys('<<script>Foo</script>script>alert("XSS")<</script>/script>')
+      rating.click()
 
-        expectPersistedCommentToMatch(/SanitizedIFrame/);
-    });
+      submitButton.click()
 
-    describe('challenge "xss3"', function () {
+      browser.get('/#/about')
+      browser.wait(EC.alertIsPresent(), 5000, "'XSS' alert is not present")
+      browser.switchTo().alert().then(alert => {
+        expect(alert.getText()).toEqual('XSS')
+        alert.accept()
+      })
 
-        it('should be possible to trick the sanitization with a masked XSS attack', function () {
-            comment.sendKeys('<<script>Foo</script>script>alert("XSS3")<</script>/script>');
-            rating.click();
+      browser.get('/#/administration')
+      browser.wait(EC.alertIsPresent(), 5000, "'XSS' alert is not present")
+      browser.switchTo().alert().then(alert => {
+        expect(alert.getText()).toEqual('XSS')
+        alert.accept()
+        element.all(by.repeater('feedback in feedbacks')).last().element(by.css('.fa-trash-alt')).element(by.xpath('ancestor::a')).click()
+      })
+    })
 
-            submitButton.click();
+    protractor.expect.challengeSolved({ challenge: 'XSS Tier 4' })
+  })
 
-            browser.ignoreSynchronization = true;
+  describe('challenge "vulnerableComponent"', () => {
+    it('should be possible to post known vulnerable component(s) as feedback', () => {
+      comment.sendKeys('sanitize-html 1.4.2 is non-recursive.')
+      comment.sendKeys('express-jwt 0.1.3 has broken crypto.')
+      rating.click()
 
-            browser.get('/#/about');
-            browser.driver.sleep(1000);
+      submitButton.click()
+    })
 
-            browser.switchTo().alert().then(function (alert) {
-                expect(alert.getText()).toEqual('XSS3');
-                alert.accept();
-                browser.driver.sleep(1000);
-            });
+    protractor.expect.challengeSolved({ challenge: 'Vulnerable Library' })
+  })
 
-            browser.get('/#/administration');
-            browser.driver.sleep(1000);
+  describe('challenge "weirdCrypto"', () => {
+    it('should be possible to post weird crypto algorithm/library as feedback', () => {
+      comment.sendKeys('The following libraries are bad for crypto: z85, base85, md5 and hashids')
+      rating.click()
 
-            browser.switchTo().alert().then(function (alert) {
-                expect(alert.getText()).toEqual('XSS3');
-                alert.accept();
-                element.all(by.repeater('feedback in feedbacks')).last().element(by.css('.fa-trash')).click();
-                browser.driver.sleep(1000);
-                browser.ignoreSynchronization = false;
-            });
+      submitButton.click()
+    })
 
-        });
+    protractor.expect.challengeSolved({ challenge: 'Weird Crypto' })
+  })
 
-        protractor.expect.challengeSolved({challenge: 'xss3'});
+  describe('challenge "typosquattingNpm"', () => {
+    it('should be possible to post typosquatting NPM package as feedback', () => {
+      comment.sendKeys('You are a typosquatting victim of this NPM package: epilogue-js')
+      rating.click()
 
-    });
+      submitButton.click()
+    })
 
-    describe('challenge "vulnerableComponent"', function () {
+    protractor.expect.challengeSolved({ challenge: 'Typosquatting Tier 1' })
+  })
 
-        it('should be possible to post known vulnerable component(s) as feedback', function () {
-            comment.sendKeys('sanitize-html 1.4.2 is vulnerable to masking attacks because it does not act recursively. You actually pinned this exact dependency version!');
-            comment.sendKeys('sequelize 1.7.11 is vulnerable to SQL Injection via GeoJSON. Whatever this means. Anyway, you are depending on 1.7.x so you might be vulnerable!');
-            rating.click();
+  describe('challenge "typosquattingBower"', () => {
+    it('should be possible to post typosquatting Bower package as feedback', () => {
+      comment.sendKeys('You are a typosquatting victim of this Bower package: angular-tooltipps')
+      rating.click()
 
-            submitButton.click();
-        });
+      submitButton.click()
+    })
 
-        protractor.expect.challengeSolved({challenge: 'vulnerableComponent'});
+    protractor.expect.challengeSolved({ challenge: 'Typosquatting Tier 2' })
+  })
 
-    });
+  describe('challenge "zeroStars"', () => { // FIXME Retrieve captcha first via $http.get() and then send id & captcha along with subsequent $http.post()
+    it('should be possible to post feedback with zero stars by double-clicking rating widget', () => {
+      comment.sendKeys('No stars for ya here, yo!')
+      rating.click()
+      element(by.className('glyphicon-star')).click()
 
-    describe('challenge "weirdCrypto"', function () {
+      submitButton.click()
+    })
 
-        it('should be possible to post weird crypto algorithm/library as feedback', function () {
-            comment.sendKeys('The following libraries should really not be used for crypto: z85, base85 and rot13');
-            rating.click();
+    protractor.expect.challengeSolved({ challenge: 'Zero Stars' })
+  })
 
-            submitButton.click();
-        });
+  describe('challenge "captchaBypass"', () => {
+    it('should be possible to post 10 or more customer feedbacks in less than 10 seconds', () => {
+      for (var i = 0; i < 11; i++) {
+        comment.sendKeys('Spam #' + i)
+        rating.click()
+        submitButton.click()
+        solveNextCaptcha() // first CAPTCHA was already solved in beforeEach
+      }
+    })
 
-        protractor.expect.challengeSolved({challenge: 'weirdCrypto'});
+    protractor.expect.challengeSolved({ challenge: 'CAPTCHA Bypass' })
+  })
 
-    });
+  function solveNextCaptcha () {
+    element(by.id('captcha')).getText().then((text) => {
+      const answer = eval(text).toString() // eslint-disable-line no-eval
+      captcha.sendKeys(answer)
+    })
+  }
 
-});
-
-function expectPersistedCommentToMatch(expectation) {
-    browser.get('/#/administration');
-    var feedbackComments = element.all(by.repeater('feedback in feedbacks').column('comment'));
-    expect(feedbackComments.last().getText()).toMatch(expectation);
-}
+  function expectPersistedCommentToMatch (expectation) {
+    browser.get('/#/administration')
+    const feedbackComments = element.all(by.repeater('feedback in feedbacks').column('comment'))
+    expect(feedbackComments.last().getText()).toMatch(expectation)
+  }
+})

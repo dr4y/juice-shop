@@ -9,12 +9,8 @@
     margin: 10px 0 20px;
 }
 
-.right .github-fork-ribbon {
-    background-color: #333;
-}
-
 .ribbon-spacer {
-    margin-right: 100px;
+    margin-right: 150px;
 }
 
 .btn-group {
@@ -30,4 +26,12 @@
     overflow: visible;
     padding-bottom: 0;
     padding-top: 0;
+}
+
+.label-button {
+    cursor: pointer;
+}
+
+.capitalize {
+    text-transform: capitalize;
 }

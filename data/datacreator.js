@@ -1,405 +1,365 @@
-/*jslint node: true */
-'use strict';
+/* jslint node: true */
+const models = require('../models/index')
+const datacache = require('./datacache')
+const config = require('config')
+const utils = require('../lib/utils')
+const mongodb = require('./mongodb')
 
-var models = require('../models/index'),
-    datacache = require('./datacache'),
-    challenges = datacache.challenges,
-    users = datacache.users,
-    products = datacache.products;
+const fs = require('fs')
+const path = require('path')
+const util = require('util')
+const { safeLoad } = require('js-yaml')
 
-module.exports = function() {
+const readFile = util.promisify(fs.readFile)
 
-    createChallenges();
-    createUsers();
-    createProducts();
-    createBaskets();
-    createFeedback();
+function loadStaticData (file) {
+  const filePath = path.resolve('./data/static/' + file + '.yml')
+  return readFile(filePath, 'utf8')
+    .then(safeLoad)
+    .catch(() => console.error('Could not open file: "' + filePath + '"'))
+}
 
-    function createChallenges() {
-        models.Challenge.create({
-            name: 'scoreBoard',
-            description: 'Find the carefully hidden \'Score Board\' page.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.scoreBoardChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'errorHandling',
-            description: 'Provoke an error that is not very gracefully handled.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.errorHandlingChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'loginAdmin',
-            description: 'Log in with the administrator\'s user account.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.loginAdminChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'loginJim',
-            description: 'Log in with Jim\'s user account.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.loginJimChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'loginBender',
-            description: 'Log in with Bender\'s user account.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.loginBenderChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'xss1',
-            description: 'XSS Tier 1: Perform a <i>reflected</i> XSS attack with &lt;script&gt;alert("XSS1")&lt;/script&gt;.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.localXssChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'xss2',
-            description: 'XSS Tier 2: Perform a <i>persisted</i> XSS attack with &lt;script&gt;alert("XSS2")&lt;/script&gt; bypassing a <i>client-side</i> security mechanism.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.persistedXssChallengeUser = challenge;
-        });
-        models.Challenge.create({
-            name: 'xss3',
-            description: 'XSS Tier 3: Perform a <i>persisted</i> XSS attack with &lt;script&gt;alert("XSS3")&lt;/script&gt; bypassing a <i>server-side</i> security mechanism.',
-            difficulty: 3,
-            solved: false
-        }).success(function (challenge) {
-            challenges.persistedXssChallengeFeedback = challenge;
-        });
-        models.Challenge.create({
-            name: 'xss4',
-            description: 'XSS Tier 4: Perform a <i>persisted</i> XSS attack with &lt;script&gt;alert("XSS4")&lt;/script&gt; without using the frontend application at all.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.restfulXssChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'unionSqlI',
-            description: 'Retrieve a list of all user credentials via SQL Injection',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.unionSqlInjectionChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'adminCredentials',
-            description: 'Log in with the administrator\'s user credentials without previously changing them or applying SQL Injection.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.weakPasswordChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'fiveStarFeedback',
-            description: 'Get rid of all 5-star customer feedback.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.feedbackChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'forgedFeedback',
-            description: 'Post some feedback in another users name.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.forgedFeedbackChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'redirect',
-            description: 'Wherever you go, there you are.',
-            difficulty: 3,
-            solved: false
-        }).success(function (challenge) {
-            challenges.redirectChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'accessBasket',
-            description: 'Access someone else\'s basket.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.basketChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'negativeOrder',
-            description: 'Place an order that makes you rich.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.negativeOrderChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'confidentialDocument',
-            description: 'Access a confidential document.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.directoryListingChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'forgottenBackup',
-            description: 'Access a forgotten backup file.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.forgottenBackupChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'adminSection',
-            description: 'Access the administration section of the store.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.adminSectionChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'csrf',
-            description: 'Change Bender\'s password into <i>slurmCl4ssic</i>.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.csrfChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'changeProduct',
-            description: 'Change the link in the description of the <a href="/#/search?q=O-Saft">O-Saft product</a> to <i>http://kimminich.de</i>.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.changeProductChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'vulnerableComponent',
-            description: '<a href="/#/contact">Inform the shop</a> about a vulnerable library it is using. (Mention the exact library name and version in your complaint.)',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.knownVulnerableComponentChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'weirdCrypto',
-            description: '<a href="/#/contact">Inform the shop</a> about an algorithm or library it should definitely not use the way it does.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.weirdCryptoChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'easterEgg1',
-            description: 'Find the hidden <a href="http://en.wikipedia.org/wiki/Easter_egg_(media)" target="_blank">easter egg</a>.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.easterEggLevelOneChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'easterEgg2',
-            description: 'Apply some advanced cryptanalysis to find <i>the real</i> easter egg.',
-            difficulty: 3,
-            solved: false
-        }).success(function (challenge) {
-            challenges.easterEggLevelTwoChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'forgedCoupon',
-            description: 'Forge a coupon code that gives you a discount of at least 80%.',
-            difficulty: 3,
-            solved: false
-        }).success(function (challenge) {
-            challenges.forgedCouponChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'geocitiesTheme',
-            description: 'Travel back in time to the golden era of web design.',
-            difficulty: 2,
-            solved: false
-        }).success(function (challenge) {
-            challenges.geocitiesThemeChallenge = challenge;
-        });
-        models.Challenge.create({
-            name: 'christmasSpecial',
-            description: 'Order the Christmas special offer of 2014.',
-            difficulty: 1,
-            solved: false
-        }).success(function (challenge) {
-            challenges.christmasSpecialChallenge = challenge;
-        });
-    }
-    function createUsers() {
-        models.User.create({
-            email: 'admin@juice-sh.op',
-            password: 'admin123'
-        });
-        models.User.create({
-            email: 'jim@juice-sh.op',
-            password: 'ncc-1701'
-        });
-        models.User.create({
-            email: 'bender@juice-sh.op',
-            password: 'booze'
-        }).success(function (user) {
-            users.bender = user;
-        });
+module.exports = async () => {
+  const creators = [
+    createUsers,
+    createChallenges,
+    createRandomFakeUsers,
+    createProducts,
+    createBaskets,
+    createBasketItems,
+    createFeedback,
+    createComplaints,
+    createRecycles,
+    createSecurityQuestions,
+    createSecurityAnswers
+  ]
+
+  for (const creator of creators) {
+    await creator()
+  }
+}
+
+async function createChallenges () {
+  const showHints = config.get('application.showChallengeHints')
+
+  const challenges = await loadStaticData('challenges')
+
+  await Promise.all(
+    challenges.map(async ({ name, category, description, difficulty, hint, hintUrl, key }) => {
+      try {
+        const challenge = await models.Challenge.create({
+          key,
+          name,
+          category,
+          description,
+          difficulty,
+          solved: false,
+          hint: showHints ? hint : null,
+          hintUrl: showHints ? hintUrl : null
+        })
+        datacache.challenges[key] = challenge
+      } catch (err) {
+        console.error(`Could not insert Challenge ${name}`)
+        console.error(err)
+      }
+    })
+  )
+}
+
+async function createUsers () {
+  const users = await loadStaticData('users')
+
+  await Promise.all(
+    users.map(async ({ email, password, customDomain, key }) => {
+      try {
+        const completeEmail = customDomain ? email : `${email}@${config.get('application.domain')}`
+        const user = await models.User.create({
+          email: completeEmail,
+          password
+        })
+        datacache.users[key] = user
+      } catch (err) {
+        console.error(`Could not insert User ${name}`)
+        console.error(err)
+      }
+    })
+  )
+}
+
+function createRandomFakeUsers () {
+  function getGeneratedRandomFakeUserEmail () {
+    const randomDomain = makeRandomString(4).toLowerCase() + '.' + makeRandomString(2).toLowerCase()
+    return makeRandomString(5).toLowerCase() + '@' + randomDomain
+  }
+
+  function makeRandomString (length) {
+    let text = ''
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+
+    for (let i = 0; i < length; i++) { text += possible.charAt(Math.floor(Math.random() * possible.length)) }
+
+    return text
+  }
+
+  return Promise.all(new Array(config.get('application.numberOfRandomFakeUsers')).fill(0).map(
+    () => models.User.create({
+      email: getGeneratedRandomFakeUserEmail(),
+      password: makeRandomString(5)
+    })
+  ))
+}
+
+function createProducts () {
+  const products = config.get('products').map((product) => {
+    // set default price values
+    product.price = product.price || Math.floor(Math.random())
+    product.description = product.description || 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.'
+
+    // set default image values
+    product.image = product.image || 'undefined.png'
+    if (utils.startsWith(product.image, 'http')) {
+      const imageUrl = product.image
+      product.image = decodeURIComponent(product.image.substring(product.image.lastIndexOf('/') + 1))
+      utils.downloadToFile(imageUrl, 'app/public/images/products/' + product.image)
     }
 
-    function createProducts() {
-        models.Product.create({
-            name: 'Apple Juice (1000ml)',
-            description: 'The all-time classic.',
-            price: 1.99,
-            image: 'apple_juice.jpg'
-        });
-        models.Product.create({
-            name: 'Orange Juice (1000ml)',
-            description: 'Made from oranges hand-picked by Uncle Dittmeyer.',
-            price: 2.99,
-            image: 'orange_juice.jpg'
-        });
-        models.Product.create({
-            name: 'Eggfruit Juice (500ml)',
-            description: 'Now with even more exotic flavour.',
-            price: 8.99,
-            image: 'eggfruit_juice.jpg'
-        });
-        models.Product.create({
-            name: 'Raspberry Juice (1000ml)',
-            description: 'Made from blended Raspberry Pi, water and sugar.',
-            price: 4.99,
-            image: 'raspberry_juice.jpg'
-        });
-        models.Product.create({
-            name: 'Lemon Juice (500ml)',
-            description: 'Sour but full of vitamins.',
-            price: 2.99,
-            image: 'lemon_juice.jpg'
-        });
-        models.Product.create({
-            name: 'Banana Juice (1000ml)',
-            description: 'Monkeys love it the most.',
-            price: 1.99,
-            image: 'banana_juice.jpg'
-        });
-        models.Product.create({
-            name: 'Lemon Juice (500ml)',
-            description: 'Sour but full of vitamins.',
-            price: 2.99,
-            image: 'lemon_juice.jpg'
-        });
-        models.Product.create({
-            name: 'OWASP Juice Shop T-Shirt (3XL)',
-            description: 'Real fans wear it 24/7!',
-            price: 24.99,
-            image: 'fan_shirt.jpg'
-        });
-        models.Product.create({
-            name: 'OWASP SSL Advanced Forensic Tool (O-Saft)',
-            description: 'O-Saft is an easy to use tool to show information about SSL certificate and tests the SSL connection according given list of ciphers and various SSL configurations. <a href="https://www.owasp.org/index.php/O-Saft" target="_blank">More...</a>',
-            price: 0.01,
-            image: 'owasp_osaft.jpg'
-        }).success(function (product) {
-            products.osaft = product;
-        });
-        models.Product.create({
-            name: 'Christmas Super-Surprise-Box (2014 Edition)',
-            description: 'Contains a random selection of 10 bottles (each 500ml) of our tastiest juices and an extra fan shirt (3XL) for an unbeatable price! Only available on Christmas 2014!',
-            price: 29.99,
-            image: 'undefined.jpg'
-        }).success(function (product) {
-            products.christmasSpecial = product;
-            models.sequelize.query('UPDATE Products SET deletedAt = \'2014-12-27 00:00:00.000 +00:00\'  WHERE id = ' + product.id);
-        });
-        models.Product.create({
-            name: 'OWASP Juice Shop Sticker',
-            description: 'You want to put <a href="https://www.stickermule.com/de/marketplace/9680-juice-shop-logo" target="_blank">this</a> on your laptop. You definitely want that. Trust me.',
-            price: 2.99,
-            image: 'sticker.png'
-        });
+    // set deleted at values if configured
+    if (product.deletedDate) {
+      product.deletedAt = product.deletedDate
+      delete product.deletedDate
     }
 
-    function createBaskets() {
-        models.Basket.create({
-            UserId: 1
-        });
-        models.Basket.create({
-            UserId: 2
-        });
-        models.Basket.create({
-            UserId: 3
-        });
-        models.BasketItem.create({
-            BasketId: 1,
-            ProductId: 1,
-            quantity: 2
-        });
-        models.BasketItem.create({
-            BasketId: 1,
-            ProductId: 2,
-            quantity: 3
-        });
-        models.BasketItem.create({
-            BasketId: 1,
-            ProductId: 3,
-            quantity: 1
-        });
-        models.BasketItem.create({
-            BasketId: 2,
-            ProductId: 4,
-            quantity: 2
-        });
-        models.BasketItem.create({
-            BasketId: 3,
-            ProductId: 5,
-            quantity: 1
-        });
-    }
+    return product
+  })
 
-    function createFeedback() {
-        models.Feedback.create({
-            UserId: 1,
-            comment: 'I love this shop! Best juice in town! Highly recommended!',
-            rating: 5
-        });
-        models.Feedback.create({
-            UserId: 2,
-            comment: 'Great shop! The O-Saft is highly recommended!',
-            rating: 4
-        });
-        models.Feedback.create({
-            comment: 'Why isn\'t there a T-Shirt for skinny people available?!',
-            rating: 2
-        });
-        models.Feedback.create({
-            comment: 'This is <b>the</b> store for juices of all kinds!',
-            rating: 4
-        });
-        models.Feedback.create({
-            comment: 'Never gonna buy my juice anywhere else from now on! Thanks for the great service!',
-            rating: 4
-        });
-        models.Feedback.create({
-            comment: 'Keep up the good work!',
-            rating: 3
-        });
-        models.Feedback.create({
-            UserId: 3,
-            comment: 'No real drinks available here!',
-            rating: 1
-        });
+  // add Challenge specific information
+  const chrismasChallengeProduct = products.find(({ useForChristmasSpecialChallenge }) => useForChristmasSpecialChallenge)
+  const tamperingChallengeProduct = products.find(({ urlForProductTamperingChallenge }) => urlForProductTamperingChallenge)
+  const blueprintRetrivalChallengeProduct = products.find(({ fileForRetrieveBlueprintChallenge }) => fileForRetrieveBlueprintChallenge)
+
+  chrismasChallengeProduct.description += ' (Seasonal special offer! Limited availability!)'
+  chrismasChallengeProduct.deletedAt = '2014-12-27 00:00:00.000 +00:00'
+  tamperingChallengeProduct.description += ' <a href="' + tamperingChallengeProduct.urlForProductTamperingChallenge + '" target="_blank">More...</a>'
+  tamperingChallengeProduct.deletedAt = null
+
+  let blueprint = blueprintRetrivalChallengeProduct.fileForRetrieveBlueprintChallenge
+  if (utils.startsWith(blueprint, 'http')) {
+    const blueprintUrl = blueprint
+    blueprint = decodeURIComponent(blueprint.substring(blueprint.lastIndexOf('/') + 1))
+    utils.downloadToFile(blueprintUrl, 'app/public/images/products/' + blueprint)
+  }
+  datacache.retrieveBlueprintChallengeFile = blueprint
+
+  return Promise.all(
+    products.map(
+      ({ reviews = [], useForChristmasSpecialChallenge = false, urlForProductTamperingChallenge = false, ...product }) =>
+        models.Product.create(product).catch(
+          (err) => {
+            console.error(`Could not insert Product ${product.name}`)
+            console.error(err)
+          }
+        ).then((persistedProduct) => {
+          if (useForChristmasSpecialChallenge) { datacache.products.christmasSpecial = persistedProduct }
+          if (urlForProductTamperingChallenge) { datacache.products.osaft = persistedProduct }
+          return persistedProduct
+        })
+          .then(({ id }) =>
+            Promise.all(
+              reviews.map(({ text, author }) =>
+                mongodb.reviews.insert({
+                  message: text,
+                  author: `${author}@${config.get('application.domain')}`,
+                  product: id
+                }).catch((err) => {
+                  console.error(`Could not insert Product Review ${text}`)
+                  console.error(err)
+                })
+              )
+            )
+          )
+    )
+  )
+}
+
+function createBaskets () {
+  const baskets = [
+    { UserId: 1 },
+    { UserId: 2 },
+    { UserId: 3 }
+  ]
+
+  return Promise.all(
+    baskets.map(basket => {
+      models.Basket.create(basket).catch((err) => {
+        console.error(`Could not insert Basket for UserId ${basket.UserId}`)
+        console.error(err)
+      })
+    })
+  )
+}
+
+function createBasketItems () {
+  const basketItems = [
+    {
+      BasketId: 1,
+      ProductId: 1,
+      quantity: 2
+    },
+    {
+      BasketId: 1,
+      ProductId: 2,
+      quantity: 3
+    },
+    {
+      BasketId: 1,
+      ProductId: 3,
+      quantity: 1
+    },
+    {
+      BasketId: 2,
+      ProductId: 4,
+      quantity: 2
+    },
+    {
+      BasketId: 3,
+      ProductId: 5,
+      quantity: 1
     }
-};
+  ]
+
+  return Promise.all(
+    basketItems.map(basketItem => {
+      models.BasketItem.create(basketItem).catch((err) => {
+        console.error(`Could not insert BasketItem for BasketId ${basketItem.BasketId}`)
+        console.error(err)
+      })
+    })
+  )
+}
+
+function createFeedback () {
+  const feedbacks = [
+    {
+      UserId: 1,
+      comment: 'I love this shop! Best products in town! Highly recommended!',
+      rating: 5
+    },
+    {
+      UserId: 2,
+      comment: 'Great shop! Awesome service!',
+      rating: 4
+    },
+    {
+      comment: 'Incompetent customer support! Can\'t even upload photo of broken purchase!<br><em>Support Team: Sorry, only order confirmation PDFs can be attached to complaints!</em>',
+      rating: 2
+    },
+    {
+      comment: 'This is <b>the</b> store for awesome stuff of all kinds!',
+      rating: 4
+    },
+    {
+      comment: 'Never gonna buy anywhere else from now on! Thanks for the great service!',
+      rating: 4
+    },
+    {
+      comment: 'Keep up the good work!',
+      rating: 3
+    },
+    {
+      UserId: 3,
+      comment: 'Nothing useful available here!',
+      rating: 1
+    }
+  ]
+
+  return Promise.all(
+    feedbacks.map((feedback) => models.Feedback.create(feedback).catch((err) => {
+      console.error(`Could not insert Feedback ${feedback.comment}`)
+      console.error(err)
+    }))
+  )
+}
+
+function createComplaints () {
+  return models.Complaint.create({
+    UserId: 3,
+    message: 'I\'ll build my own eCommerce business! With Black Jack! And Hookers!'
+  }).catch((err) => {
+    console.error(`Could not insert Complaint`)
+    console.error(err)
+  })
+}
+
+function createRecycles () {
+  return models.Recycle.create({
+    UserId: 2,
+    quantity: 800,
+    address: 'Starfleet HQ, 24-593 Federation Drive, San Francisco, CA',
+    date: '2270-01-17',
+    isPickup: true
+  }).catch((err) => {
+    console.error(`Could not insert Recycling Model`)
+    console.error(err)
+  })
+}
+
+function createSecurityQuestions () {
+  const questions = [
+    'Your eldest siblings middle name?',
+    'Mother\'s maiden name?',
+    'Mother\'s birth date? (MM/DD/YY)',
+    'Father\'s birth date? (MM/DD/YY)',
+    'Maternal grandmother\'s first name?',
+    'Paternal grandmother\'s first name?',
+    'Name of your favorite pet?',
+    'Last name of dentist when you were a teenager? (Do not include \'Dr.\')',
+    'Your ZIP/postal code when you were a teenager?',
+    'Company you first work for as an adult?'
+  ]
+
+  return Promise.all(
+    questions.map((question) => models.SecurityQuestion.create({ question }).catch((err) => {
+      console.error(`Could not insert SecurityQuestion ${question}`)
+      console.error(err)
+    }))
+  )
+}
+
+function createSecurityAnswers () {
+  const answers = [{
+    SecurityQuestionId: 2,
+    UserId: 1,
+    answer: '@xI98PxDO+06!'
+  }, {
+    SecurityQuestionId: 1,
+    UserId: 2,
+    answer: 'Samuel' // https://en.wikipedia.org/wiki/James_T._Kirk
+  }, {
+    SecurityQuestionId: 10,
+    UserId: 3,
+    answer: 'Stop\'n\'Drop' // http://futurama.wikia.com/wiki/Suicide_booth
+  }, {
+    SecurityQuestionId: 9,
+    UserId: 4,
+    answer: 'West-2082' // http://www.alte-postleitzahlen.de/uetersen
+  }, {
+    SecurityQuestionId: 7,
+    UserId: 5,
+    answer: 'Brd?j8sEMziOvvBf§Be?jFZ77H?hgm'
+  }, {
+    SecurityQuestionId: 10,
+    UserId: 6,
+    answer: 'SC OLEA SRL' // http://www.olea.com.ro/
+  }, {
+    SecurityQuestionId: 7,
+    UserId: 7,
+    answer: '5N0wb41L' // http://rickandmorty.wikia.com/wiki/Snuffles
+  }]
+
+  return Promise.all(
+    answers.map(answer => models.SecurityAnswer.create(answer).catch(err => {
+      console.error(`Could not insert SecurityAnswer for UserId ${answer.UserId}`)
+      console.error(err)
+    }))
+  )
+}

@@ -1,5 +1,3 @@
-/*jslint node: true */
-'use strict';
+const server = require('./server')
 
-var server = require('./server');
-server.start({ port: process.env.PORT || 3000 });
+server.start()

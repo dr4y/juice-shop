@@ -1,37 +1,35 @@
-/*jslint node: true */
-'use strict';
+/* jslint node: true */
+const insecurity = require('../lib/insecurity')
+const utils = require('../lib/utils')
+const challenges = require('../data/datacache').challenges
 
-var insecurity = require('../lib/insecurity'),
-    utils = require('../lib/utils'),
-    challenges = require('../data/datacache').challenges;
-
-module.exports = function (sequelize, DataTypes) {
-    var Feedback = sequelize.define('Feedback', {
-            comment: DataTypes.STRING,
-            rating: DataTypes.INTEGER
-        },
-        {
-            classMethods: {
-                associate: function (models) {
-                    Feedback.belongsTo(models.User);
-                }},
-
-            hooks: {
-                beforeCreate: function (feedback, fn) {
-                    htmlSanitizationHook(feedback);
-                    fn(null, feedback);
-                },
-                beforeUpdate: function (feedback, fn) {
-                    htmlSanitizationHook(feedback);
-                    fn(null, feedback);
-                }
-            }});
-    return Feedback;
-};
-
-function htmlSanitizationHook(feedback) {
-    feedback.comment = insecurity.sanitizeHtml(feedback.comment);
-    if (utils.notSolved(challenges.persistedXssChallengeFeedback) && utils.contains(feedback.comment, '<script>alert("XSS3")</script>')) {
-        utils.solve(challenges.persistedXssChallengeFeedback);
+module.exports = (sequelize, {STRING, INTEGER}) => {
+  const Feedback = sequelize.define('Feedback', {
+    comment: {
+      type: STRING,
+      set (comment) {
+        const sanitizedComment = insecurity.sanitizeHtml(comment)
+        this.setDataValue('comment', sanitizedComment)
+        if (utils.notSolved(challenges.persistedXssChallengeFeedback) && utils.contains(sanitizedComment, '<script>alert("XSS")</script>')) {
+          utils.solve(challenges.persistedXssChallengeFeedback)
+        }
+      }
+    },
+    rating: {
+      type: INTEGER,
+      allowNull: false,
+      set (rating) {
+        this.setDataValue('rating', rating)
+        if (utils.notSolved(challenges.zeroStarsChallenge) && rating === 0) {
+          utils.solve(challenges.zeroStarsChallenge)
+        }
+      }
     }
+  })
+
+  Feedback.associate = ({User}) => {
+    Feedback.belongsTo(User) // no FK constraint to allow anonymous feedback posts
+  }
+
+  return Feedback
 }

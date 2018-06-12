@@ -1,32 +1,28 @@
-/*jslint node: true */
-'use strict';
+const insecurity = require('../lib/insecurity')
+const models = require('../models/index')
 
-var insecurity = require('../lib/insecurity'),
-    models = require('../models/index'),
-    challenges = require('../data/datacache').challenges;
-
-exports = module.exports = function applyCoupon() {
-    return function (req, res, next) {
-        var id = req.params.id;
-        var coupon = req.params.coupon ? decodeURIComponent(req.params.coupon) : undefined;
-        var discount = insecurity.discountFromCoupon(coupon);
-        coupon = discount ? coupon : null;
-        models.Basket.find(id).success(function (basket) {
-            if (basket) {
-                basket.updateAttributes({coupon: coupon}).success(function() {
-                    if (discount) {
-                        res.json({discount: discount});
-                    } else {
-                        res.status(404).send('Invalid coupon.');
-                    }
-                }).error(function (error) {
-                    next(error);
-                });
-            } else {
-                next(new Error('Basket with id=' + id + ' does not exist.'));
-            }
-        }).error(function (error) {
-            next(error);
-        });
-    };
-};
+module.exports = function applyCoupon () {
+  return ({params}, res, next) => {
+    const id = params.id
+    let coupon = params.coupon ? decodeURIComponent(params.coupon) : undefined
+    const discount = insecurity.discountFromCoupon(coupon)
+    coupon = discount ? coupon : null
+    models.Basket.findById(id).then(basket => {
+      if (basket) {
+        basket.updateAttributes({ coupon }).then(() => {
+          if (discount) {
+            res.json({ discount })
+          } else {
+            res.status(404).send('Invalid coupon.')
+          }
+        }).catch(error => {
+          next(error)
+        })
+      } else {
+        next(new Error('Basket with id=' + id + ' does not exist.'))
+      }
+    }).catch(error => {
+      next(error)
+    })
+  }
+}

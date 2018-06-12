@@ -1,52 +1,36 @@
-/*jslint node: true */
-/*global jasmine*/
-'use strict';
+'use strict'
 
 exports.config = {
-    directConnect: true,
+  directConnect: true,
 
-    allScriptsTimeout: 80000,
+  allScriptsTimeout: 80000,
 
-    specs: [
-        'test/e2e/*.js'
-    ],
+  specs: [
+    'test/e2e/*.js'
+  ],
 
-    capabilities: {
-        'browserName': 'chrome'
-    },
+  capabilities: {
+    'browserName': 'chrome'
+  },
 
-    baseUrl: 'http://localhost:3000',
+  baseUrl: 'http://localhost:3000',
 
-    framework: 'jasmine',
+  framework: 'jasmine2',
 
-    jasmineNodeOpts: {
-        showColors: true,
-        defaultTimeoutInterval: 80000
-    },
+  jasmineNodeOpts: {
+    showColors: true,
+    defaultTimeoutInterval: 80000
+  },
 
-    onPrepare: function() {
-        require('jasmine-reporters');
-        jasmine.getEnv().addReporter(
-            new jasmine.JUnitXmlReporter('build/reports/e2e_results', true, true));
-    },
+  onPrepare: function () {
+    var jasmineReporters = require('jasmine-reporters')
+    jasmine.getEnv().addReporter(new jasmineReporters.JUnitXmlReporter({
+      consolidateAll: true,
+      savePath: 'build/reports/e2e_results'
+    }))
 
-    sauceUser: process.env.SAUCE_USERNAME,
-    sauceKey: process.env.SAUCE_ACCESS_KEY
-
-};
-
-if (process.env.TRAVIS_BUILD_NUMBER) {
-    exports.config.seleniumAddress = 'http://localhost:4445/wd/hub';
-    exports.config.capabilities = {
-        'name': 'OWASP Juice Shop e2e Tests',
-        'browserName': 'chrome',
-        'platform': 'Linux',
-        'screen-resolution': '1920x1200',
-        'username': process.env.SAUCE_USERNAME,
-        'accessKey': process.env.SAUCE_ACCESS_KEY,
-        'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
-        'build': process.env.TRAVIS_BUILD_NUMBER,
-        'tags': [process.env.TRAVIS_BRANCH, process.env.TRAVIS_BUILD_NUMBER, 'e2e']
-    };
-    
+    // Get cookie consent popup out of the way
+    browser.get('/#')
+    element(by.className('cc-dismiss')).click()
+  }
 }

